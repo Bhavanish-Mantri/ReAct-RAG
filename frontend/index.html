@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineAgent - ReAct Movie Recommendation Agent</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="stars"></div>
+    <div class="glowing-orb orb-1"></div>
+    <div class="glowing-orb orb-2"></div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <i class="fa-solid fa-clapperboard logo-icon"></i>
+                <h1>Cine<span>Agent</span></h1>
+            </div>
+            <div class="status-panel" id="status-panel">
+                <span class="status-badge" id="gemini-status">
+                    <span class="dot"></span> Gemini API: checking...
+                </span>
+                <span class="status-badge" id="tmdb-status">
+                    <span class="dot"></span> Database: checking...
+                </span>
+            </div>
+        </header>
+
+        <!-- Main Dashboard -->
+        <main class="dashboard-grid">
+            
+            <!-- Left Panel: Input & Controls -->
+            <section class="control-panel glass">
+                <div class="panel-header">
+                    <h2><i class="fa-solid fa-wand-magic-sparkles text-gradient"></i> ReAct Agent Prompt</h2>
+                    <p>Ask the agent to recommend a movie with complex constraints (e.g. genre, decade, certification, and streaming platforms).</p>
+                </div>
+                
+                <form id="search-form" class="search-form">
+                    <div class="input-wrapper">
+                        <textarea 
+                            id="query-input" 
+                            placeholder="e.g. Recommend a horror movie from the 90s rated R"
+                            rows="3" 
+                            required
+                        ></textarea>
+                        <button type="submit" class="btn btn-primary" id="submit-btn">
+                            <span>Get Recommendations</span>
+                            <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+
+                <div class="suggestions">
+                    <h3>Try these examples:</h3>
+                    <div class="suggestion-tags">
+                        <button class="tag-btn" data-query="Recommend a horror movie from the 90s rated R.">
+                            <i class="fa-solid fa-ghost"></i> 90s Horror (R)
+                        </button>
+                        <button class="tag-btn" data-query="Can you suggest an action or sci-fi movie from the 90s rated R available on Max?">
+                            <i class="fa-solid fa-gun"></i> 90s Action/Sci-Fi on Max
+                        </button>
+                        <button class="tag-btn" data-query="Find a family friendly animation movie from the 90s rated G.">
+                            <i class="fa-solid fa-child"></i> 90s Family Animation (G)
+                        </button>
+                        <button class="tag-btn" data-query="Recommend a highly rated sci-fi movie from the 2010s rated PG-13 that I can watch on Netflix.">
+                            <i class="fa-solid fa-user-astronaut"></i> 2010s Sci-Fi on Netflix
+                        </button>
+                    </div>
+                </div>
+
+                <!-- API Key Reminder Alert -->
+                <div class="alert-box info-alert" id="api-alert" style="display: none;">
+                    <i class="fa-solid fa-circle-info alert-icon"></i>
+                    <div class="alert-content">
+                        <h4>API Key Required</h4>
+                        <p>Create a <code>.env</code> file in the project root with your <code>GEMINI_API_KEY</code> to get started.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel: Output & Trace -->
+            <div class="output-panel">
+                
+                <!-- Welcome State -->
+                <div class="welcome-card glass" id="welcome-card">
+                    <div class="welcome-icon">
+                        <i class="fa-solid fa-play"></i>
+                    </div>
+                    <h2>Ready to Search</h2>
+                    <p>Enter a query or select one of the templates to initiate the ReAct Agent reasoning loop.</p>
+                </div>
+
+                <!-- Loading State -->
+                <div class="loading-card glass" id="loading-card" style="display: none;">
+                    <div class="spinner"></div>
+                    <h3>Agent is Thinking...</h3>
+                    <p id="loading-status">Analyzing constraints and preparing database query parameters...</p>
+                </div>
+
+                <!-- Main Content Output -->
+                <div class="results-container" id="results-container" style="display: none;">
+                    
+                    <!-- Final Answer Block -->
+                    <div class="final-answer-box glass">
+                        <div class="badge-title">Agent Response</div>
+                        <div class="agent-avatar">
+                            <i class="fa-solid fa-robot"></i>
+                        </div>
+                        <div class="answer-content" id="final-answer">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- Recommended Movies Grid -->
+                    <div class="movies-section">
+                        <h3><i class="fa-solid fa-film text-gradient"></i> Recommended Movies</h3>
+                        <div class="movies-grid" id="movies-grid">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                    <!-- ReAct Execution Trace Console -->
+                    <div class="trace-section glass">
+                        <div class="trace-header">
+                            <h3><i class="fa-solid fa-terminal text-gradient"></i> ReAct Agent Execution Trace</h3>
+                            <span class="trace-indicator">Loop Complete</span>
+                        </div>
+                        <div class="trace-console" id="trace-console">
+                            <!-- Populated dynamically -->
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </main>
+
+        <footer class="app-footer">
+            <p>Built with <i class="fa-solid fa-heart text-gradient"></i> using Langchain ReAct Agent, Google Gemini LLM, and FastAPI</p>
+        </footer>
+    </div>
+
+    <!-- Script -->
+    <script src="/static/app.js"></script>
+</body>
+</html>
