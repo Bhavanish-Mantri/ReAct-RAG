@@ -16,32 +16,54 @@ To ensure out-of-the-box submit-readiness, the project is engineered with a **du
 *   **Developer-Friendly Runner**: Single-script startup that automatically handles `.env` creation, packages installation verification, and launches the default web browser.
 
 ---
-
 ## 🛠️ Architecture Overview
 
-The application follows a decoupled client-server pattern:
+The application follows a decoupled client-server architecture where the frontend, backend, AI agent, and data sources work together to process user requests and generate movie recommendations.
 
 ```mermaid
-graph TD
-    User([User Prompt]) -->|1. Submit Query| Frontend[HTML5/CSS3 Web UI]
-    Frontend -->|2. POST Request| API[FastAPI Server]
-    API -->|3. Run Agent| Executor[Langchain Agent Executor]
-    Executor -->|4. Reasoning| LLM[Google Gemini 1.5 Flash]
-    LLM -->|5. Decide Tool Action| Tool[discover_movies tool]
-    
-    subgraph Database Layer
-        Tool -->|6. Query (Live TMDB)| TMDB[TMDB API Client]
-        Tool -->|6. Query (Fallback)| MockDB[Mock Database]
+flowchart TD
+
+    U[User] -->|1. Submit Query| FE[Frontend<br/>HTML5 / CSS3 Web UI]
+    FE -->|2. POST Request| API[FastAPI Server]
+    API -->|3. Execute Agent| AGENT[LangChain Agent Executor]
+
+    AGENT -->|4. Reasoning| LLM[Google Gemini 1.5 Flash]
+    LLM -->|5. Select Tool| TOOL[discover_movies Tool]
+
+    subgraph "Database Layer"
+        TMDB[TMDB API]
+        MOCK[Mock Database]
     end
-    
-    TMDB -->|7. Return Movies| Tool
-    MockDB -->|7. Return Movies| Tool
-    Tool -->|8. Observation| Executor
-    Executor -->|9. Final Answer Synthesis| LLM
+
+    TOOL -->|6a. Live Search| TMDB
+    TOOL -->|6b. Fallback Search| MOCK
+
+    TMDB -->|7. Movie Results| TOOL
+    MOCK -->|7. Movie Results| TOOL
+
+    TOOL -->|8. Observation| AGENT
+    AGENT -->|9. Generate Response| LLM
     LLM -->|10. Response Payload| API
-    API -->|11. JSON Response| Frontend
-    Frontend -->|12. Render Trace & Cards| User
+    API -->|11. JSON Response| FE
+    FE -->|12. Display Recommendations| U
 ```
+
+### Workflow
+
+1. The user submits a movie-related query through the web interface.
+2. The frontend sends the request to the FastAPI backend.
+3. The backend invokes a LangChain Agent Executor.
+4. Google Gemini 1.5 Flash analyzes the user's request.
+5. The agent decides whether to use the `discover_movies` tool.
+6. The tool retrieves movie data from the TMDB API or falls back to a mock database when necessary.
+7. The retrieved results are returned to the agent as observations.
+8. The LLM synthesizes a final response based on the available information.
+9. The backend sends the response as JSON to the frontend.
+10. The frontend renders the recommendation cards and reasoning trace for the user.
+
+```
+```
+
 
 ---
 
